@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة المسؤولين - NeelainNews | أيقونات Bootstrap</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap');
+    
+    * { transition: 0.2s; margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Cairo', sans-serif; background: #121212; color: #e5e7eb; padding-bottom: 2rem; }
+    body.light { background: #f1f5f9; color: #0f172a; }
+    .admin-card { background: rgba(255,255,255,0.05); border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid rgba(255,255,255,0.1); }
+    body.light .admin-card { background: white; border-color: #e2e8f0; }
+    .btn { padding: 0.5rem 1rem; border-radius: 0.6rem; font-weight: bold; cursor: pointer; border: none; }
+    .btn-primary { background: #CC5A30; color: white; }
+    .btn-danger { background: #dc2626; color: white; }
+    .btn-sm { padding: 0.25rem 0.75rem; font-size: 0.8rem; }
+    input, textarea, select { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 1rem; padding: 0.5rem 1rem; color: inherit; width: 100%; font-family: inherit; outline: none; }
+    body.light input, body.light textarea, body.light select { background: #f8fafc; border-color: #cbd5e1; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
+    .modal-content { background: #1e293b; border-radius: 2rem; padding: 1.5rem; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+    body.light .modal-content { background: white; }
+    .toast-msg { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #CC5A30; color: white; padding: 10px 20px; border-radius: 40px; z-index: 3000; opacity: 0; transition: 0.3s; pointer-events: none; font-weight: bold; }
+    .login-container { max-width: 400px; margin: 10vh auto; padding: 2rem; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); border-radius: 2rem; border: 1px solid rgba(255,255,255,0.2); }
+    body.light .login-container { background: white; border-color: #e2e8f0; }
+    .search-box { margin-bottom: 1rem; }
+    .pagination { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem; }
+    .page-btn { padding: 0.25rem 0.75rem; border-radius: 2rem; background: rgba(255,255,255,0.1); cursor: pointer; }
+    .page-btn.active { background: #CC5A30; color: white; }
+    .icon-preview { font-size: 1.5rem; margin-left: 0.5rem; vertical-align: middle; }
+  </style>
+</head>
+<body class="dark">
+  <div id="toastMsg" class="toast-msg"></div>
+  <div id="appRoot"></div>
+
+  <script>
+    // ------------------------- الأمان والجلسة -------------------------
+    const ADMIN_KEY = 'neelain_admin_session';
+    const PASSWORD_HASH_KEY = 'neelain_admin_password_hash';
+    const DEFAULT_PASSWORD = 'Neelain@2025';
+    
+    function hashPassword(pwd) {
+      return btoa(pwd + 'salt_neelain');
+    }
+    
+    function initSecurity() {
+      if (!localStorage.getItem(PASSWORD_HASH_KEY)) {
+        localStorage.setItem(PASSWORD_HASH_KEY, hashPassword(DEFAULT_PASSWORD));
+      }
+    }
+    
+    function verifyPassword(inputPwd) {
+      return hashPassword(inputPwd) === localStorage.getItem(PASSWORD_HASH_KEY);
+    }
+    
+    function changePassword(newPwd) {
+      if(newPwd.length < 6) { showToast("كلمة المرور يجب أن تكون 6 أحرف على الأقل", true); return false; }
+      localStorage.setItem(PASSWORD_HASH_KEY, hashPassword(newPwd));
+      showToast("✅ تم تغيير كلمة المرور بنجاح");
+      return true;
+    }
+    
+    function createSession() {
+      const token = Date.now() + '-' + Math.random().toString(36);
+      sessionStorage.setItem(ADMIN_KEY, token);
+      return token;
+    }
+    
+    function isAuthenticated() {
+      return !!sessionStorage.getItem(ADMIN_KEY);
+    }
+    
+    function logout() {
+      sessionStorage.removeItem(ADMIN_KEY);
+      renderLogin();
+    }
+    
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toastMsg');
+      toast.textContent = msg;
+      toast.style.opacity = '1';
+      toast.style.background = isError ? '#dc2626' : '#CC5A30';
+      setTimeout(() => toast.style.opacity = '0', 2500);
+    }
+    
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m])); }
+    
+    // ------------------------- تحويل الإيموجيات القديمة إلى أيقونات -------------------------
+    function emojiToIconClass(emojiOrText) {
+      if (!emojiOrText) return 'bi-megaphone-fill';
+      const map = {
+        '🏛️': 'bi-buildings-fill',
+        '👩‍🎓': 'bi-person-vcard-fill',
+        '💻': 'bi-laptop-fill',
+        '📚': 'bi-book-fill',
+        '👨‍🏫': 'bi-person-badge-fill',
+        '👩‍🎓': 'bi-mortarboard-fill',
+        '📢': 'bi-megaphone-fill',
+        '👤': 'bi-person-fill',
+        '👨‍💻': 'bi-code-slash',
+        '👥': 'bi-people-fill',
+        '🔔': 'bi-bell-fill'
+      };
+      if (map[emojiOrText]) return map[emojiOrText];
+      // إذا كان النص يبدو كـ class أيقونة بالفعل يبدأ بـ 'bi'
+      if (typeof emojiOrText === 'string' && emojiOrText.trim().startsWith('bi ')) return emojiOrText.trim();
+      return 'bi-megaphone-fill';
+    }
+    
+    function upgradeOldData() {
+      // ترقية المنشورات
+      posts.forEach(p => {
+        if (p.avatarIcon && !p.avatarIcon.startsWith('bi ')) {
+          p.avatarIcon = emojiToIconClass(p.avatarIcon);
+        } else if (!p.avatarIcon) p.avatarIcon = 'bi-megaphone-fill';
+      });
+      // ترقية الأشخاص
+      people.forEach(p => {
+        if (p.avatar && !p.avatar.startsWith('bi ')) {
+          p.avatar = emojiToIconClass(p.avatar);
+        } else if (!p.avatar) p.avatar = 'bi-person-fill';
+      });
+      saveData();
+    }
+    
+    // ------------------------- البيانات والتخزين -------------------------
+    const STORAGE_KEYS = {
+      POSTS: 'neelain_posts', ALERTS: 'neelain_alerts', PEOPLE: 'neelain_people', COMMENTS: 'neelain_comments'
+    };
+    let posts = [], alerts = [], people = [], comments = {};
+    let currentTab = 'posts';
+    let currentPage = 1;
+    let itemsPerPage = 5;
+    let searchQuery = '';
+    
+    function loadData() {
+      posts = JSON.parse(localStorage.getItem(STORAGE_KEYS.POSTS) || '[]');
+      alerts = JSON.parse(localStorage.getItem(STORAGE_KEYS.ALERTS) || '[]');
+      people = JSON.parse(localStorage.getItem(STORAGE_KEYS.PEOPLE) || '[]');
+      comments = JSON.parse(localStorage.getItem(STORAGE_KEYS.COMMENTS) || '{}');
+      upgradeOldData();
+    }
+    function saveData() {
+      localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(posts));
+      localStorage.setItem(STORAGE_KEYS.ALERTS, JSON.stringify(alerts));
+      localStorage.setItem(STORAGE_KEYS.PEOPLE, JSON.stringify(people));
+      localStorage.setItem(STORAGE_KEYS.COMMENTS, JSON.stringify(comments));
+    }
+    
+    // تصدير/استيراد
+    function exportData() {
+      const data = { posts, alerts, people, comments };
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `neelain_backup_${new Date().toISOString().slice(0,19)}.json`;
+      a.click(); URL.revokeObjectURL(url);
+      showToast("📁 تم تصدير البيانات");
+    }
+    function importData(file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if(data.posts) posts = data.posts;
+          if(data.alerts) alerts = data.alerts;
+          if(data.people) people = data.people;
+          if(data.comments) comments = data.comments;
+          upgradeOldData();
+          saveData(); loadData(); renderCurrentTab();
+          showToast("✅ استيراد البيانات بنجاح");
+        } catch(err) { showToast("❌ ملف غير صالح", true); }
+      };
+      reader.readAsText(file);
+    }
+    
+    // ------------------------- الترشيح والترقيم -------------------------
+    function filterItems(arr, searchFields) {
+      if(!searchQuery) return arr;
+      return arr.filter(item => searchFields.some(field => item[field]?.toString().toLowerCase().includes(searchQuery)));
+    }
+    
+    function paginate(items) {
+      const start = (currentPage-1)*itemsPerPage;
+      return items.slice(start, start+itemsPerPage);
+    }
+    
+    function renderPagination(totalItems, callback) {
+      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      if(totalPages <= 1) return '';
+      let html = '<div class="pagination">';
+      for(let i=1; i<=totalPages; i++) {
+        html += `<button class="page-btn ${i===currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+      }
+      html += '</div>';
+      setTimeout(() => {
+        document.querySelectorAll('.page-btn').forEach(btn => {
+          btn.addEventListener('click', () => { currentPage = parseInt(btn.dataset.page); callback(); });
+        });
+      }, 0);
+      return html;
+    }
+    
+    // ------------------------- أيقونات منتقاة -------------------------
+    const iconOptions = [
+      { value: 'bi-megaphone-fill', label: 'مكبر صوت (إعلان)' },
+      { value: 'bi-buildings-fill', label: 'مبنى (جامعة)' },
+      { value: 'bi-person-fill', label: 'شخص' },
+      { value: 'bi-people-fill', label: 'أشخاص' },
+      { value: 'bi-laptop-fill', label: 'حاسوب' },
+      { value: 'bi-book-fill', label: 'كتاب' },
+      { value: 'bi-mortarboard-fill', label: 'قبعة تخرج' },
+      { value: 'bi-bell-fill', label: 'جرس' },
+      { value: 'bi-chat-left-text-fill', label: 'تعليقات' },
+      { value: 'bi-star-fill', label: 'نجمة' },
+      { value: 'bi-calendar-event-fill', label: 'تقويم' },
+      { value: 'bi-newspaper', label: 'صحيفة' }
+    ];
+    
+    function renderIconSelect(selectedValue) {
+      let options = '';
+      iconOptions.forEach(opt => {
+        options += `<option value="${opt.value}" ${selectedValue === opt.value ? 'selected' : ''}>${opt.label}</option>`;
+      });
+      return `<select id="iconSelect" class="mb-2">${options}</select><div class="mt-1"><span>معاينة: </span><i class="${selectedValue || 'bi-megaphone-fill'} icon-preview"></i></div>`;
+    }
+    
+    // أقسام الإدارة (مع أيقونات)
+    function renderPosts() {
+      let filtered = filterItems(posts, ['author', 'content']);
+      const total = filtered.length;
+      const paginated = paginate(filtered);
+      let html = `<div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+        <button id="addPostBtn" class="btn btn-primary">+ منشور جديد</button>
+        <div class="search-box"><input type="text" id="searchPosts" placeholder="بحث في المنشورات..." class="w-auto"></div>
+        <button id="exportBtn" class="btn btn-primary"><i class="bi bi-download"></i> تصدير</button>
+        <label class="btn btn-primary"><i class="bi bi-upload"></i> استيراد<input type="file" id="importFile" accept=".json" style="display:none"></label>
+      </div>`;
+      if(paginated.length === 0) html += `<div class="admin-card text-center">لا توجد منشورات مطابقة</div>`;
+      else {
+        html += paginated.map(p => `<div class="admin-card"><div class="flex justify-between items-start"><div><div class="flex items-center gap-2"><i class="${p.avatarIcon} text-2xl"></i><strong>${escapeHtml(p.author)}</strong></div><div class="text-sm opacity-70 mt-1">${escapeHtml(p.content)}</div><div class="text-xs mt-2"><i class="bi bi-heart-fill"></i> ${p.likes} | <i class="bi bi-chat-left-text-fill"></i> ${(comments[p.id]||[]).length}</div></div><div><button class="btn btn-sm btn-primary edit-post" data-id="${p.id}"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-danger delete-post" data-id="${p.id}"><i class="bi bi-trash"></i></button></div></div></div>`).join('');
+      }
+      html += renderPagination(total, () => renderCurrentTab());
+      return html;
+    }
+    
+    function renderAlerts() {
+      let filtered = filterItems(alerts, ['title', 'description']);
+      const total = filtered.length;
+      const paginated = paginate(filtered);
+      let html = `<div class="flex flex-wrap justify-between mb-4"><button id="addAlertBtn" class="btn btn-primary">+ تنبيه جديد</button><div class="search-box"><input type="text" id="searchAlerts" placeholder="بحث في التنبيهات..."></div></div>`;
+      if(paginated.length===0) html += `<div class="admin-card text-center">لا توجد تنبيهات</div>`;
+      else {
+        html += paginated.map(a => `<div class="admin-card"><div class="flex justify-between"><div><strong>${escapeHtml(a.title)}</strong><div class="text-sm">${escapeHtml(a.description)}</div><div class="text-xs opacity-70">${escapeHtml(a.date)}</div></div><div><button class="btn btn-sm btn-primary edit-alert" data-id="${a.id}"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-danger delete-alert" data-id="${a.id}"><i class="bi bi-trash"></i></button></div></div></div>`).join('');
+      }
+      html += renderPagination(total, () => renderCurrentTab());
+      return html;
+    }
+    
+    function renderPeople() {
+      let filtered = filterItems(people, ['name', 'role']);
+      const total = filtered.length;
+      const paginated = paginate(filtered);
+      let html = `<div class="flex flex-wrap justify-between mb-4"><button id="addPersonBtn" class="btn btn-primary">+ شخص جديد</button><div class="search-box"><input type="text" id="searchPeople" placeholder="بحث في الأشخاص..."></div></div>`;
+      if(paginated.length===0) html += `<div class="admin-card text-center">لا يوجد أشخاص</div>`;
+      else {
+        html += paginated.map(p => `<div class="admin-card"><div class="flex justify-between"><div><div class="flex gap-2 items-center"><i class="${p.avatar} text-2xl"></i><div><strong>${escapeHtml(p.name)}</strong><div class="text-sm">${escapeHtml(p.role)}</div></div></div><div class="text-xs mt-1">${p.isFollowed ? 'متابَع ✓' : 'غير متابع'}</div></div><div><button class="btn btn-sm btn-primary edit-person" data-id="${p.id}"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-danger delete-person" data-id="${p.id}"><i class="bi bi-trash"></i></button></div></div></div>`).join('');
+      }
+      html += renderPagination(total, () => renderCurrentTab());
+      return html;
+    }
+    
+    function renderComments() {
+      let allComments = [];
+      for(let pid in comments) {
+        comments[pid].forEach(c => allComments.push({...c, postId: pid, postTitle: `منشور ${pid}`}));
+      }
+      let filtered = allComments.filter(c => c.text.toLowerCase().includes(searchQuery) || c.author.toLowerCase().includes(searchQuery));
+      const total = filtered.length;
+      const paginated = paginate(filtered);
+      let html = `<div class="flex justify-between mb-4"><h3 class="font-bold text-lg">💬 إدارة التعليقات</h3><div class="search-box"><input type="text" id="searchComments" placeholder="بحث في التعليقات..."></div></div>`;
+      if(total===0) html += `<div class="admin-card text-center">لا توجد تعليقات</div>`;
+      else {
+        html += paginated.map(c => `<div class="admin-card"><div class="font-bold mb-1">📌 ${escapeHtml(c.postTitle)}</div><div class="border-r-2 border-[#CC5A30] pr-3 py-2"><div class="flex justify-between"><span class="font-semibold">${escapeHtml(c.author)}</span><button class="text-red-400 delete-comment" data-post="${c.postId}" data-commentid="${c.id}"><i class="bi bi-trash"></i></button></div><div>${escapeHtml(c.text)}</div><div class="text-xs opacity-60">${c.timestamp}</div></div></div>`).join('');
+      }
+      html += renderPagination(total, () => renderCurrentTab());
+      return html;
+    }
+    
+    // دالة رندر رئيسية بعد تسجيل الدخول
+    function renderAdminDashboard() {
+      loadData();
+      let stats = `<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="admin-card text-center"><i class="bi bi-card-list text-2xl"></i><div class="font-bold">${posts.length}</div><div>منشورات</div></div>
+        <div class="admin-card text-center"><i class="bi bi-bell-fill text-2xl"></i><div class="font-bold">${alerts.length}</div><div>تنبيهات</div></div>
+        <div class="admin-card text-center"><i class="bi bi-people-fill text-2xl"></i><div class="font-bold">${people.length}</div><div>أشخاص</div></div>
+        <div class="admin-card text-center"><i class="bi bi-chat-left-text-fill text-2xl"></i><div class="font-bold">${Object.values(comments).reduce((a,b)=>a+b.length,0)}</div><div>تعليقات</div></div>
+      </div>`;
+      let tabsHtml = `<div class="flex flex-wrap gap-2 mb-6 border-b border-white/10 pb-2">
+        <button data-tab="posts" class="tab-btn px-4 py-2 rounded-full font-bold ${currentTab==='posts'?'bg-[#CC5A30] text-white':''}"><i class="bi bi-card-list"></i> المنشورات</button>
+        <button data-tab="alerts" class="tab-btn px-4 py-2 rounded-full font-bold ${currentTab==='alerts'?'bg-[#CC5A30] text-white':''}"><i class="bi bi-bell-fill"></i> التنبيهات</button>
+        <button data-tab="people" class="tab-btn px-4 py-2 rounded-full font-bold ${currentTab==='people'?'bg-[#CC5A30] text-white':''}"><i class="bi bi-people-fill"></i> الأشخاص</button>
+        <button data-tab="comments" class="tab-btn px-4 py-2 rounded-full font-bold ${currentTab==='comments'?'bg-[#CC5A30] text-white':''}"><i class="bi bi-chat-left-text-fill"></i> التعليقات</button>
+      </div>`;
+      let content = '';
+      if(currentTab === 'posts') content = renderPosts();
+      else if(currentTab === 'alerts') content = renderAlerts();
+      else if(currentTab === 'people') content = renderPeople();
+      else content = renderComments();
+      
+      const fullHtml = `
+        <header class="flex flex-wrap justify-between items-center p-4 border-b border-white/10 sticky top-0 bg-inherit backdrop-blur z-10">
+          <h1 class="text-2xl font-bold"><i class="bi bi-shield-lock-fill"></i> لوحة المسؤولين</h1>
+          <div class="flex gap-2">
+            <button id="settingsBtn" class="avatar bg-[#CC5A30] w-10 h-10 rounded-full"><i class="bi bi-gear-fill"></i></button>
+            <button id="darkToggleAdmin" class="avatar bg-[#CC5A30] w-10 h-10 rounded-full"><i class="bi bi-moon-stars-fill"></i></button>
+            <button id="logoutBtn" class="avatar bg-[#CC5A30] w-10 h-10 rounded-full"><i class="bi bi-box-arrow-right"></i></button>
+            <a href="index.html" class="avatar bg-[#CC5A30] w-10 h-10 rounded-full flex items-center justify-center"><i class="bi bi-house-door-fill"></i></a>
+          </div>
+        </header>
+        <main class="max-w-4xl mx-auto p-4">
+          ${stats}
+          ${tabsHtml}
+          <div id="adminContent">${content}</div>
+        </main>
+      `;
+      document.getElementById('appRoot').innerHTML = fullHtml;
+      attachAdminEvents();
+    }
+    
+    function attachAdminEvents() {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentTab = btn.dataset.tab;
+          currentPage = 1;
+          searchQuery = '';
+          renderAdminDashboard();
+        });
+      });
+      const searchInput = document.getElementById(`search${currentTab.charAt(0).toUpperCase() + currentTab.slice(1)}`);
+      if(searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          searchQuery = e.target.value.trim().toLowerCase();
+          currentPage = 1;
+          renderAdminDashboard();
+        });
+      }
+      if(currentTab === 'posts') {
+        document.getElementById('addPostBtn')?.addEventListener('click', () => addEditPost());
+        document.querySelectorAll('.edit-post').forEach(btn => btn.addEventListener('click', (e) => { const id = parseInt(btn.dataset.id); addEditPost(posts.find(p=>p.id===id)); }));
+        document.querySelectorAll('.delete-post').forEach(btn => btn.addEventListener('click', async (e) => { if(confirm('حذف المنشور نهائياً؟')) { const id = parseInt(btn.dataset.id); posts = posts.filter(p=>p.id!==id); delete comments[id]; saveData(); showToast("تم الحذف"); renderAdminDashboard(); } }));
+      } else if(currentTab === 'alerts') {
+        document.getElementById('addAlertBtn')?.addEventListener('click', () => addEditAlert());
+        document.querySelectorAll('.edit-alert').forEach(btn => btn.addEventListener('click', (e) => { const id = parseInt(btn.dataset.id); addEditAlert(alerts.find(a=>a.id===id)); }));
+        document.querySelectorAll('.delete-alert').forEach(btn => btn.addEventListener('click', (e) => { if(confirm('حذف التنبيه؟')) { alerts = alerts.filter(a=>a.id!==parseInt(btn.dataset.id)); saveData(); renderAdminDashboard(); } }));
+      } else if(currentTab === 'people') {
+        document.getElementById('addPersonBtn')?.addEventListener('click', () => addEditPerson());
+        document.querySelectorAll('.edit-person').forEach(btn => btn.addEventListener('click', (e) => { const id = parseInt(btn.dataset.id); addEditPerson(people.find(p=>p.id===id)); }));
+        document.querySelectorAll('.delete-person').forEach(btn => btn.addEventListener('click', (e) => { if(confirm('حذف الشخص؟')) { people = people.filter(p=>p.id!==parseInt(btn.dataset.id)); saveData(); renderAdminDashboard(); } }));
+      } else if(currentTab === 'comments') {
+        document.querySelectorAll('.delete-comment').forEach(btn => btn.addEventListener('click', (e) => { const postId = parseInt(btn.dataset.post); const commentId = parseInt(btn.dataset.commentid); if(confirm('حذف التعليق؟')) { comments[postId] = comments[postId].filter(c=>c.id!==commentId); if(comments[postId].length===0) delete comments[postId]; saveData(); renderAdminDashboard(); } }));
+      }
+      document.getElementById('exportBtn')?.addEventListener('click', () => exportData());
+      const importFileBtn = document.querySelector('#importFile');
+      if(importFileBtn) {
+        const label = document.querySelector('label[for="importFile"]');
+        if(label) label.addEventListener('click', () => importFileBtn.click());
+        importFileBtn.addEventListener('change', (e) => { if(e.target.files.length) importData(e.target.files[0]); e.target.value = ''; });
+      }
+      document.getElementById('settingsBtn')?.addEventListener('click', () => {
+        const newPwd = prompt("أدخل كلمة المرور الجديدة (6 أحرف على الأقل)");
+        if(newPwd) changePassword(newPwd);
+      });
+      document.getElementById('logoutBtn')?.addEventListener('click', () => logout());
+      let isDark = !document.body.classList.contains('light');
+      document.getElementById('darkToggleAdmin')?.addEventListener('click', () => {
+        isDark = !isDark;
+        document.body.classList.toggle('light', !isDark);
+        document.getElementById('darkToggleAdmin').innerHTML = isDark ? '<i class="bi bi-moon-stars-fill"></i>' : '<i class="bi bi-brightness-high-fill"></i>';
+      });
+    }
+    
+    // نماذج الإضافة والتعديل مع منتقي الأيقونات
+    function addEditPost(post=null) {
+      const isEdit = !!post;
+      const currentIcon = post ? post.avatarIcon : 'bi-megaphone-fill';
+      showModal(isEdit ? 'تعديل منشور' : 'إضافة منشور',
+        `<input type="text" id="author" placeholder="اسم الكاتب" value="${post ? escapeHtml(post.author) : ''}" required class="mb-2">
+         ${renderIconSelect(currentIcon)}
+         <textarea id="content" placeholder="محتوى المنشور" required rows="3" class="mb-2">${post ? escapeHtml(post.content) : ''}</textarea>`,
+        (form) => {
+          const iconSelect = form.querySelector('#iconSelect');
+          const selectedIcon = iconSelect ? iconSelect.value : 'bi-megaphone-fill';
+          const newPost = { id: isEdit ? post.id : Date.now(), author: form.author.value, avatarIcon: selectedIcon, content: form.content.value, likes: isEdit ? post.likes : 0, liked: false };
+          if(isEdit) posts[posts.findIndex(p=>p.id===post.id)] = newPost;
+          else posts.push(newPost);
+          saveData(); renderAdminDashboard(); showToast(isEdit ? "تم التعديل" : "تم الإضافة");
+        });
+    }
+    
+    function addEditAlert(alert=null) {
+      showModal(alert ? 'تعديل تنبيه' : 'إضافة تنبيه',
+        `<input type="text" id="title" placeholder="العنوان" value="${alert ? escapeHtml(alert.title) : ''}" required class="mb-2">
+         <textarea id="description" placeholder="الوصف" required rows="2" class="mb-2">${alert ? escapeHtml(alert.description) : ''}</textarea>
+         <input type="text" id="date" placeholder="التاريخ (مثال: منذ ساعة)" value="${alert ? escapeHtml(alert.date) : 'الآن'}" class="mb-2">`,
+        (form) => {
+          const newAlert = { id: alert ? alert.id : Date.now(), title: form.title.value, description: form.description.value, date: form.date.value || 'الآن' };
+          if(alert) alerts[alerts.findIndex(a=>a.id===alert.id)] = newAlert;
+          else alerts.push(newAlert);
+          saveData(); renderAdminDashboard(); showToast(alert ? "تم التعديل" : "تم الإضافة");
+        });
+    }
+    
+    function addEditPerson(person=null) {
+      const isEdit = !!person;
+      const currentIcon = person ? person.avatar : 'bi-person-fill';
+      showModal(isEdit ? 'تعديل شخص' : 'إضافة شخص',
+        `<input type="text" id="name" placeholder="الاسم" value="${person ? escapeHtml(person.name) : ''}" required class="mb-2">
+         <input type="text" id="role" placeholder="المنصب/الدور" value="${person ? escapeHtml(person.role) : ''}" required class="mb-2">
+         ${renderIconSelect(currentIcon)}
+         <label><input type="checkbox" id="isFollowed" ${person?.isFollowed ? 'checked' : ''}> متابع؟</label>`,
+        (form) => {
+          const iconSelect = form.querySelector('#iconSelect');
+          const selectedIcon = iconSelect ? iconSelect.value : 'bi-person-fill';
+          const newPerson = { id: isEdit ? person.id : Date.now(), name: form.name.value, role: form.role.value, avatar: selectedIcon, isFollowed: form.isFollowed.checked };
+          if(isEdit) people[people.findIndex(p=>p.id===person.id)] = newPerson;
+          else people.push(newPerson);
+          saveData(); renderAdminDashboard(); showToast(isEdit ? "تم التعديل" : "تم الإضافة");
+        });
+    }
+    
+    function showModal(title, inputsHtml, onSave) {
+      const modalDiv = document.createElement('div');
+      modalDiv.className = 'modal';
+      modalDiv.innerHTML = `<div class="modal-content"><h2 class="text-xl font-bold mb-3">${title}</h2><form id="modalForm">${inputsHtml}</form><div class="flex justify-left gap-2 mt-4"><button type="submit" form="modalForm" class="btn btn-primary">حفظ</button><button id="closeModal" class="btn">إلغاء</button></div></div>`;
+      document.body.appendChild(modalDiv);
+      const form = modalDiv.querySelector('#modalForm');
+      // تحديث معاينة الأيقونة عند تغيير القائمة المنسدلة
+      const iconSelect = form.querySelector('#iconSelect');
+      if(iconSelect) {
+        const previewSpan = form.querySelector('.icon-preview');
+        iconSelect.addEventListener('change', () => {
+          if(previewSpan) previewSpan.className = `icon-preview ${iconSelect.value}`;
+        });
+      }
+      form.addEventListener('submit', (e) => { e.preventDefault(); onSave(form); modalDiv.remove(); });
+      modalDiv.querySelector('#closeModal').addEventListener('click', () => modalDiv.remove());
+    }
+    
+    // ------------------------- واجهة تسجيل الدخول -------------------------
+    function renderLogin() {
+      document.body.classList.remove('light');
+      document.getElementById('appRoot').innerHTML = `
+        <div class="login-container">
+          <h2 class="text-2xl font-bold text-center mb-6"><i class="bi bi-shield-lock-fill"></i> دخول المسؤول</h2>
+          <form id="loginForm">
+            <input type="text" id="username" placeholder="اسم المستخدم" class="w-full mb-3" autocomplete="off">
+            <input type="password" id="password" placeholder="كلمة المرور" class="w-full mb-4">
+            <button type="submit" class="btn btn-primary w-full">دخول</button>
+          </form>
+        </div>
+      `;
+      document.getElementById('loginForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const pwd = document.getElementById('password').value;
+        if(username === 'admin' && verifyPassword(pwd)) {
+          createSession();
+          renderAdminDashboard();
+        } else {
+          showToast("❌ اسم المستخدم أو كلمة المرور غير صحيحة", true);
+        }
+      });
+    }
+    
+    // بدء التطبيق
+    initSecurity();
+    if(isAuthenticated()) renderAdminDashboard();
+    else renderLogin();
+  </script>
+</body>
+</html>
