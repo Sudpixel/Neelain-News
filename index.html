@@ -1,278 +1,303 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أخبار جامعة النيلين</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --primary: #6D001A;
-            --primary-light: rgba(109, 0, 26, 0.2);
-            --bg-dark: #0A0A0A;
-            --card-bg: rgba(20, 20, 20, 0.6);
-            --border-light: rgba(255, 255, 255, 0.1);
-            --text-muted: #B5B5B5;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: var(--bg-dark);
-            color: #fff;
-            font-family: 'Cairo', 'Tajawal', 'IBM Plex Sans Arabic', sans-serif;
-            line-height: 1.6;
-            overflow-x: hidden;
-            padding-bottom: 50px;
-        }
-        
-        /* الهيدر الفاخر */
-        .premium-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
-            background: rgba(5, 5, 5, 0.85);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border-bottom: 2px solid var(--primary);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-            padding: 15px 5%;
-            position: sticky;
-            top: 0;
-        }
-        
-        .logo-area {
-            flex: 1;
-        }
-
-        .logo h1 {
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #FFFFFF 30%, #B5B5B5 80%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0 2px 5px rgba(109, 0, 26, 0.3);
-            position: relative;
-            display: inline-block;
-        }
-
-        .logo span {
-            color: var(--primary);
-            background: none;
-            -webkit-background-clip: unset;
-            background-clip: unset;
-            text-shadow: 0 0 8px rgba(109, 0, 26, 0.5);
-        }
-
-        .logo::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 60%;
-            height: 2px;
-            background: linear-gradient(90deg, var(--primary), transparent);
-        }
-        
-        /* أزرار التحكم */
-        .icon-btn {
-            background: rgba(17, 17, 17, 0.8);
-            border: 1px solid var(--border-light);
-            color: #fff;
-            font-size: 18px;
-            padding: 10px 16px;
-            border-radius: 14px;
-            cursor: pointer;
-            transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-            backdrop-filter: blur(4px);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .icon-btn:hover {
-            border-color: var(--primary);
-            background: var(--primary-light);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(109, 0, 26, 0.3);
-        }
-
-        /* حاوية قسم الأخبار الرئيسية */
-        .main-wrapper {
-            max-w: 800px;
-            width: 90%;
-            margin: 40px auto;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            border-right: 4px solid var(--primary);
-            padding-right: 14px;
-        }
-
-        .section-header h2 {
-            font-size: 22px;
-            font-weight: 700;
-        }
-
-        /* كروت الأخبار الديناميكية */
-        .news-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--border-light);
-            padding: 24px;
-            border-radius: 18px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .news-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 4px;
-            height: 100%;
-            background: transparent;
-            transition: background 0.3s ease;
-        }
-
-        .news-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(109, 0, 26, 0.4);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-
-        .news-card:hover::before {
-            background: var(--primary);
-        }
-
-        .news-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 12px;
-            line-height: 1.4;
-        }
-
-        .news-content {
-            color: var(--text-muted);
-            font-size: 15px;
-            font-weight: 400;
-            text-align: justify;
-            white-space: pre-line; /* للحفاظ على تنسيق الأسطر المرسلة من تليجرام */
-        }
-
-        .news-meta {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.4);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-top: 12px;
-        }
-
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>NeelainNews | منصة الجامعة</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap');
+    * { transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
+    body { font-family: "Cairo", sans-serif; background-color: #121212; color: #e5e7eb; margin: 0; padding-bottom: 80px; }
+    body.light { background-color: #f8fafc; color: #0f172a; }
+    body.light header, body.light #mobile-nav { background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); border-bottom-color: #e2e8f0; border-top-color: #e2e8f0; }
+    body.light .post-card { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+    body.light .story-card { background: #f1f5f9; color: #1e293b; border: 1px solid #e2e8f0; }
+    body.light .avatar { background: #e2e8f0; color: #CC5A30; }
+    body.light .action-btn, body.light .nav-link i { color: #475569; }
+    body.light .action-btn:hover, body.light .action-btn.active-btn { background: #CC5A30; color: white; }
+    body.light .text-gray-300 { color: #334155 !important; }
+    body.light .border-white\/10 { border-color: #e2e8f0 !important; }
+    body.light input.search-input { background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; }
+    body.light .comment-item { background: #f8fafc; border-right: 2px solid #CC5A30; }
+    header { padding: 1rem 5%; backdrop-filter: blur(15px); background: rgba(0,0,0,0.6); border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; }
+    .logo h1 { font-size: 24px; font-weight: 900; }
+    .logo span { color: #CC5A30; }
+    .avatar { width: 45px; height: 45px; background: #CC5A30; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; color: white; }
+    .action-btn { background: none; border: none; color: #a0a0a0; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 8px 15px; border-radius: 2rem; font-weight: 600; transition: 0.2s; }
+    .stories-container { display: flex; overflow-x: auto; padding: 1rem 5%; gap: 12px; scrollbar-width: thin; }
+    .story-card { width: 80px; height: 110px; border-radius: 1.2rem; background: #2a2a2a; flex-shrink: 0; display: flex; align-items: flex-end; justify-content: center; padding: 8px; font-size: 12px; font-weight: bold; background-size: cover; background-position: center; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+    .post-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border-radius: 1.5rem; padding: 1.25rem; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.5rem; }
+    .feed-container { max-width: 600px; margin: 1rem auto; padding: 0 1rem; }
+    #mobile-nav { background: rgba(26,26,26,0.96); backdrop-filter: blur(12px); border-top: 1px solid rgba(255,255,255,0.1); }
+    .search-input { width: 100%; padding: 12px 18px; border-radius: 2rem; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: white; font-family: 'Cairo', sans-serif; outline: none; font-size: 0.9rem; }
+    .search-input:focus { border-color: #CC5A30; }
+    .follow-btn { background: none; border: 1px solid #CC5A30; border-radius: 2rem; padding: 5px 12px; color: #CC5A30; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .follow-btn.following { background: #CC5A30; color: white; border: none; }
+    .alert-item { background: rgba(204,90,48,0.1); border-right: 3px solid #CC5A30; }
+    body.light .alert-item { background: #fff1ed; }
+    .comments-section { margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; display: none; }
+    .comments-section.open { display: block; }
+    .comment-item { background: rgba(0,0,0,0.2); border-radius: 1rem; padding: 0.75rem; margin-bottom: 0.75rem; }
+    .comment-author { font-weight: bold; font-size: 0.85rem; color: #CC5A30; }
+    .comment-text { font-size: 0.9rem; margin-top: 0.25rem; }
+    .comment-time { font-size: 0.7rem; opacity: 0.6; margin-top: 0.3rem; }
+    .comment-input-area { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+    .comment-input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 2rem; padding: 0.5rem 1rem; font-family: 'Cairo', sans-serif; color: inherit; outline: none; }
+    .send-comment { background: #CC5A30; border: none; border-radius: 2rem; padding: 0 1rem; color: white; cursor: pointer; font-weight: bold; }
+    .toast-msg { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #CC5A30; color: white; padding: 8px 20px; border-radius: 40px; font-size: 0.85rem; z-index: 2000; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  </style>
 </head>
-<body>
-
-    <header class="premium-header">
-        <div class="logo-area">
-            <div class="logo">
-                <h1>Neelain<span>News</span></h1>
-            </div>
-        </div>
-        
-        <div class="News-hero">
-            <button type="button" class="icon-btn">
-                <i class="bi bi-bell"></i>
-                <span>تنبيهات</span>
-            </button>
-        </div>
-    </header>
-
-    <div class="main-wrapper">
-        
-        <div class="section-header">
-            <h2>آخر الأخبار والمستجدات</h2>
-        </div>
-
-        <main id="news-container">
-            <div class="news-card">
-                <h2 class="news-title">جاري الاتصال بخادم جامعة النيلين...</h2>
-                <p class="news-content">يرجى الانتظار قليلاً لحين مزامنة آخر الأخبار المحدثة من الـ Termux.</p>
-            </div>
-        </main>
-
+<body class="dark">
+  <header>
+    <div class="logo"><h1>Neelain<span>News</span></h1></div>
+    <div class="flex gap-2">
+      <button id="searchToggleBtn" class="avatar"><i class="bi bi-search"></i></button>
+      <button id="darkModeToggle" class="avatar"><i class="bi bi-moon-stars-fill"></i></button>
+      <a href="admin.html" id="adminLink" class="avatar"><i class="bi bi-shield-lock-fill"></i></a>
     </div>
+  </header>
 
-    <script>
-        // رابط الـ Serveo الفعلي الخاص بك مع إضافة مسار جلب الأخبار
-        const API_URL = 'https://0c98e36467d74681-102-121-253-185.serveousercontent.com';
+  <div id="searchBarContainer" class="px-[5%] mt-3 hidden">
+    <input type="text" id="globalSearchInput" class="search-input" placeholder="🔍 بحث في المنشورات، الأشخاص، أو التنبيهات...">
+  </div>
 
+  <div class="stories-container">
+    <div class="story-card" style="background: linear-gradient(145deg, #CC5A30, #a23f1c);">📢 إعلانات</div>
+    <div class="story-card" style="background-image: url('https://placehold.co/400x200/2d3748/white?text=الرئيس'); background-size: cover;">الجامعة</div>
+    <div class="story-card" style="background-image: url('https://placehold.co/400x200/1e293b/white?text=أخبار'); background-size: cover;">أخبار</div>
+    <div class="story-card" style="background-image: url('https://placehold.co/400x200/334155/white?text=فعاليات'); background-size: cover;">فعاليات</div>
+  </div>
 
-        async function fetchNews() {
-            const container = document.getElementById('news-container');
-            
-            try {
-                const response = await fetch(API_URL);
-                const data = await response.json();
-                
-                // تفريغ محتوى الانتظار
-                container.innerHTML = ''; 
-                
-                if (data.length === 0) {
-                    container.innerHTML = `
-                        <div class="news-card" style="text-align: center;">
-                            <h2 class="news-title" style="color: var(--text-muted);">لا توجد أخبار</h2>
-                            <p class="news-content">لم يتم نشر أي أخبار حتى الآن عبر بوت التليجرام الخاص بالمسؤول.</p>
-                        </div>`;
-                    return;
-                }
+  <div id="dynamicContent" class="feed-container"><div class="text-center py-10">جاري التحميل...</div></div>
 
-                // عرض الأخبار تنازلياً (الجديد أولاً)
-                data.forEach(post => {
-                    container.innerHTML += `
-                        <article class="news-card">
-                            <h2 class="news-title">${post.title}</h2>
-                            <p class="news-content">${post.content}</p>
-                            <div class="news-meta">
-                                <span><i class="bi bi-building-university"></i> جامعة النيلين</span>
-                                <span><i class="bi bi-check-circle-fill" style="color: #22c55e;"></i> موثق</span>
-                            </div>
-                        </article>
-                    `;
-                });
+  <nav id="mobile-nav" class="fixed bottom-0 w-full flex justify-around p-3 z-50">
+    <a href="#" data-section="home" class="nav-link text-[#CC5A30] text-2xl"><i class="bi bi-house-door-fill"></i></a>
+    <a href="#" data-section="alerts" class="nav-link text-[#a0a0a0] text-2xl"><i class="bi bi-bell-fill"></i></a>
+    <a href="#" data-section="people" class="nav-link text-[#a0a0a0] text-2xl"><i class="bi bi-people-fill"></i></a>
+  </nav>
+  <div id="toastMsg" class="toast-msg"></div>
 
-            } catch (error) {
-                console.error("خطأ أثناء جلب البيانات:", error);
-                container.innerHTML = `
-                    <div class="news-card" style="border-color: #6D001A;">
-                        <h2 class="news-title" style="color: #ff4444;"><i class="bi bi-wifi-off"></i> فشل الاتصال بالخادم</h2>
-                        <p class="news-content">تأكد من أن تطبيق Termux يعمل على هاتفك، وأن كود البوت وجسر الـ SSH نشطين حالياً.</p>
-                    </div>
-                `;
-            }
-        }
+  <script>
+    // ------------------------- تهيئة localStorage بالبيانات الافتراضية -------------------------
+    const STORAGE_KEYS = {
+      POSTS: 'neelain_posts',
+      ALERTS: 'neelain_alerts',
+      PEOPLE: 'neelain_people',
+      COMMENTS: 'neelain_comments'
+    };
+    function initData() {
+      if (!localStorage.getItem(STORAGE_KEYS.POSTS)) {
+        const defaultPosts = [
+          { id: 1, author: "جامعة النيلين", avatarIcon: "🏛️", content: "📢 تمديد فترة التسجيل للفصل الدراسي الثاني حتى 20 فبراير. سارعوا بالتسجيل عبر البوابة الإلكترونية.", likes: 45, liked: false },
+          { id: 2, author: "عمادة شؤون الطلاب", avatarIcon: "👩‍🎓", content: "🥇 برنامج المنح الدراسية للطلاب المتميزين متاح الآن. التقديم حتى 10 مارس.", likes: 128, liked: false },
+          { id: 3, author: "نادي التكنولوجيا", avatarIcon: "💻", content: "ورشة عمل: أساسيات الذكاء الاصطناعي يوم الأربعاء القادم، سجل حضورك الآن!", likes: 89, liked: false },
+          { id: 4, author: "مكتبة الجامعة", avatarIcon: "📚", content: "موارد رقمية جديدة: منصة معرفة للوصول إلى آلاف المراجع العلمية مجاناً.", likes: 210, liked: false }
+        ];
+        localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(defaultPosts));
+      }
+      if (!localStorage.getItem(STORAGE_KEYS.ALERTS)) {
+        const defaultAlerts = [
+          { id: 1, title: "⚡ تحديث جدول الامتحانات", description: "تم تعديل مواعيد امتحانات كلية الهندسة، راجع الجدول الجديد.", date: "منذ ساعة" },
+          { id: 2, title: "🎓 مؤتمر التوظيف السنوي", description: "أكثر من 30 شركة تشارك في مؤتمر التوظيف يوم 25 فبراير.", date: "أمس" },
+          { id: 3, title: "⛅ تعطيل الدراسة بسبب الأحوال الجوية", description: "إيقاف الدراسة يوم غد في جميع الكليات بسبب العاصفة الترابية.", date: "قبل 3 أيام" },
+          { id: 4, title: "📱 تطبيق NeelainNews محدث", description: "أضفنا ميزة البحث المتطور والوضع المظلم، حدّث التطبيق الآن!", date: "منذ 5 أيام" }
+        ];
+        localStorage.setItem(STORAGE_KEYS.ALERTS, JSON.stringify(defaultAlerts));
+      }
+      if (!localStorage.getItem(STORAGE_KEYS.PEOPLE)) {
+        const defaultPeople = [
+          { id: 1, name: "د. محمد الأمين", role: "عميد كلية الحاسوب", avatar: "👨‍🏫", isFollowed: false },
+          { id: 2, name: "أ. سارة عبد الرحمن", role: "رئيسة اتحاد الطلاب", avatar: "👩‍🎓", isFollowed: true },
+          { id: 3, name: "نادي البرمجة", role: "نشاط طلابي", avatar: "💻", isFollowed: false },
+          { id: 4, name: "مكتب الإعلام", role: "الحساب الرسمي", avatar: "📢", isFollowed: true }
+        ];
+        localStorage.setItem(STORAGE_KEYS.PEOPLE, JSON.stringify(defaultPeople));
+      }
+      if (!localStorage.getItem(STORAGE_KEYS.COMMENTS)) {
+        const defaultComments = {
+          1: [
+            { id: 101, author: "أحمد علي", text: "هل يشمل طلاب الدراسات العليا؟", timestamp: "منذ ساعتين" },
+            { id: 102, author: "جامعة النيلين", text: "نعم، جميع الطلاب.", timestamp: "منذ ساعة" }
+          ],
+          2: [ { id: 201, author: "منار خالد", text: "متى موعد المقابلات؟", timestamp: "أمس" } ],
+          3: [
+            { id: 301, author: "يوسف", text: "هل الشهادة معتمدة؟", timestamp: "يومين" },
+            { id: 302, author: "نادي التكنولوجيا", text: "نعم، بشهادة معتمدة من الجامعة.", timestamp: "يومين" },
+            { id: 303, author: "سارة", text: "سأحضر إن شاء الله", timestamp: "أمس" }
+          ],
+          4: []
+        };
+        localStorage.setItem(STORAGE_KEYS.COMMENTS, JSON.stringify(defaultComments));
+      }
+    }
+    initData();
 
-        // تشغيل الدالة فور تحميل الصفحة
-        fetchNews();
-    </script>
+    let posts = JSON.parse(localStorage.getItem(STORAGE_KEYS.POSTS));
+    let alerts = JSON.parse(localStorage.getItem(STORAGE_KEYS.ALERTS));
+    let people = JSON.parse(localStorage.getItem(STORAGE_KEYS.PEOPLE));
+    let commentsData = JSON.parse(localStorage.getItem(STORAGE_KEYS.COMMENTS));
+
+    function syncToLocalStorage() {
+      localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(posts));
+      localStorage.setItem(STORAGE_KEYS.ALERTS, JSON.stringify(alerts));
+      localStorage.setItem(STORAGE_KEYS.PEOPLE, JSON.stringify(people));
+      localStorage.setItem(STORAGE_KEYS.COMMENTS, JSON.stringify(commentsData));
+    }
+
+    let currentSection = "home";
+    let searchQuery = "";
+    let isDark = true;
+    let isSearchVisible = false;
+
+    const dynamicContainer = document.getElementById("dynamicContent");
+    const darkToggleBtn = document.getElementById("darkModeToggle");
+    const searchToggleBtn = document.getElementById("searchToggleBtn");
+    const searchBarContainer = document.getElementById("searchBarContainer");
+    const globalSearchInput = document.getElementById("globalSearchInput");
+    const navLinks = document.querySelectorAll(".nav-link");
+    const toastMsg = document.getElementById("toastMsg");
+
+    function showToast(message, duration = 2000) {
+      toastMsg.textContent = message;
+      toastMsg.style.opacity = "1";
+      setTimeout(() => { toastMsg.style.opacity = "0"; }, duration);
+    }
+
+    function toggleDarkMode() {
+      isDark = !isDark;
+      document.body.classList.toggle("light", !isDark);
+      darkToggleBtn.innerHTML = isDark ? '<i class="bi bi-moon-stars-fill"></i>' : '<i class="bi bi-brightness-high-fill"></i>';
+    }
+
+    function toggleSearchBar() {
+      isSearchVisible = !isSearchVisible;
+      searchBarContainer.classList.toggle("hidden", !isSearchVisible);
+      if (isSearchVisible) globalSearchInput.focus();
+      else { globalSearchInput.value = ""; searchQuery = ""; renderCurrentSection(); }
+    }
+
+    function handleSearchInput(e) {
+      searchQuery = e.target.value.trim().toLowerCase();
+      renderCurrentSection();
+    }
+
+    function likePost(postId) {
+      const post = posts.find(p => p.id === postId);
+      if (post) {
+        post.liked = !post.liked;
+        post.likes = post.liked ? post.likes + 1 : post.likes - 1;
+        syncToLocalStorage();
+        renderCurrentSection();
+      }
+    }
+
+    function toggleFollow(personId) {
+      const person = people.find(p => p.id === personId);
+      if (person) {
+        person.isFollowed = !person.isFollowed;
+        syncToLocalStorage();
+        renderCurrentSection();
+      }
+    }
+
+    function addComment(postId, commentText) {
+      if (!commentText.trim()) return;
+      const newComment = { id: Date.now(), author: "أنت", text: commentText.trim(), timestamp: "الآن" };
+      if (!commentsData[postId]) commentsData[postId] = [];
+      commentsData[postId].push(newComment);
+      syncToLocalStorage();
+      renderCurrentSection();
+      const commentsDiv = document.getElementById(`comments-${postId}`);
+      if (commentsDiv) commentsDiv.classList.add("open");
+    }
+
+    function sharePost(postId) {
+      navigator.clipboard.writeText(`https://neelainnews.com/post/${postId}`).then(() => showToast("✅ تم نسخ رابط المنشور")).catch(() => showToast("⚠️ تعذر النسخ"));
+    }
+
+    function filterItems(arr, fields) {
+      if (!searchQuery) return arr;
+      return arr.filter(item => fields.some(f => item[f]?.toString().toLowerCase().includes(searchQuery)));
+    }
+
+    function renderCommentsSection(postId) {
+      const list = commentsData[postId] || [];
+      if (!list.length) return `<div class="text-center text-sm opacity-60 my-2">لا توجد تعليقات. كن أول من يعلق!</div>`;
+      return list.map(c => `<div class="comment-item"><div class="comment-author">${escapeHtml(c.author)}</div><div class="comment-text">${escapeHtml(c.text)}</div><div class="comment-time">${escapeHtml(c.timestamp)}</div></div>`).join('');
+    }
+
+    function renderHome() {
+      let filtered = filterItems(posts, ['author', 'content']);
+      if (!filtered.length) return `<div class="text-center py-12 bg-white/5 rounded-2xl"><i class="bi bi-search text-4xl opacity-50"></i><p class="mt-2">لا توجد نتائج بحث عن "${searchQuery}"</p></div>`;
+      return filtered.map(post => `
+        <div class="post-card">
+          <div class="flex items-center gap-3 mb-4"><div class="avatar bg-[#CC5A30] text-white flex items-center justify-center text-xl">${post.avatarIcon || '👤'}</div><strong>${escapeHtml(post.author)}</strong></div>
+          <div class="text-gray-300 leading-relaxed">${escapeHtml(post.content)}</div>
+          <div class="flex justify-between items-center mt-4 pt-3 border-t border-white/10">
+            <div class="flex gap-1">
+              <button class="action-btn like-btn" data-id="${post.id}"><i class="bi ${post.liked ? 'bi-hand-thumbs-up-fill' : 'bi-hand-thumbs-up'}"></i> <span>${post.likes}</span></button>
+              <button class="action-btn toggle-comments-btn" data-id="${post.id}"><i class="bi bi-chat-left"></i> <span>${(commentsData[post.id] || []).length}</span></button>
+              <button class="action-btn share-btn" data-id="${post.id}"><i class="bi bi-share-fill"></i></button>
+            </div>
+          </div>
+          <div id="comments-${post.id}" class="comments-section">
+            <div id="comments-list-${post.id}">${renderCommentsSection(post.id)}</div>
+            <div class="comment-input-area"><input type="text" id="comment-input-${post.id}" class="comment-input" placeholder="اكتب تعليقك..." /><button class="send-comment" data-id="${post.id}">إرسال</button></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderAlerts() {
+      let filtered = filterItems(alerts, ['title', 'description']);
+      if (!filtered.length) return `<div class="text-center py-12 bg-white/5 rounded-2xl"><i class="bi bi-bell-slash text-4xl opacity-50"></i><p class="mt-2">لا توجد تنبيهات مطابقة</p></div>`;
+      return filtered.map(alert => `<div class="post-card alert-item"><div class="flex items-start gap-3"><div class="avatar bg-[#CC5A30] text-white w-10 h-10 text-lg"><i class="bi bi-megaphone-fill"></i></div><div class="flex-1"><div class="flex justify-between"><h3 class="font-bold">${escapeHtml(alert.title)}</h3><span class="text-xs text-gray-400">${escapeHtml(alert.date)}</span></div><p class="text-gray-300 mt-1 text-sm">${escapeHtml(alert.description)}</p></div></div></div>`).join('');
+    }
+
+    function renderPeople() {
+      let filtered = filterItems(people, ['name', 'role']);
+      if (!filtered.length) return `<div class="text-center py-12 bg-white/5 rounded-2xl"><i class="bi bi-person-x text-4xl opacity-50"></i><p class="mt-2">لا يوجد أشخاص مطابقين</p></div>`;
+      return filtered.map(person => `<div class="post-card flex items-center justify-between"><div class="flex items-center gap-4"><div class="avatar w-12 h-12 text-2xl">${person.avatar}</div><div><p class="font-bold">${escapeHtml(person.name)}</p><p class="text-xs text-gray-400">${escapeHtml(person.role)}</p></div></div><button class="follow-btn ${person.isFollowed ? 'following' : ''}" data-personid="${person.id}">${person.isFollowed ? 'متابَع' : 'متابعة'}</button></div>`).join('');
+    }
+
+    function renderCurrentSection() {
+      let content = currentSection === "home" ? renderHome() : (currentSection === "alerts" ? renderAlerts() : renderPeople());
+      dynamicContainer.innerHTML = content;
+      attachDynamicEvents();
+    }
+
+    function attachDynamicEvents() {
+      document.querySelectorAll('.like-btn').forEach(btn => { btn.removeEventListener('click', likeHandler); btn.addEventListener('click', likeHandler); });
+      document.querySelectorAll('.follow-btn').forEach(btn => { btn.removeEventListener('click', followHandler); btn.addEventListener('click', followHandler); });
+      document.querySelectorAll('.toggle-comments-btn').forEach(btn => { btn.removeEventListener('click', toggleCommentsHandler); btn.addEventListener('click', toggleCommentsHandler); });
+      document.querySelectorAll('.share-btn').forEach(btn => { btn.removeEventListener('click', shareHandler); btn.addEventListener('click', shareHandler); });
+      document.querySelectorAll('.send-comment').forEach(btn => { btn.removeEventListener('click', sendCommentHandler); btn.addEventListener('click', sendCommentHandler); });
+      document.querySelectorAll('.comment-input').forEach(input => { input.removeEventListener('keypress', commentEnterHandler); input.addEventListener('keypress', commentEnterHandler); });
+    }
+    const likeHandler = e => likePost(parseInt(e.currentTarget.getAttribute('data-id')));
+    const followHandler = e => toggleFollow(parseInt(e.currentTarget.getAttribute('data-personid')));
+    const toggleCommentsHandler = e => document.getElementById(`comments-${parseInt(e.currentTarget.getAttribute('data-id'))}`)?.classList.toggle("open");
+    const shareHandler = e => sharePost(parseInt(e.currentTarget.getAttribute('data-id')));
+    const sendCommentHandler = e => { const postId = parseInt(e.currentTarget.getAttribute('data-id')); const input = document.getElementById(`comment-input-${postId}`); if(input?.value.trim()) addComment(postId, input.value); else showToast("⚠️ اكتب تعليقاً أولاً"); input.value = ""; };
+    const commentEnterHandler = e => { if(e.key === 'Enter') { const postId = parseInt(e.currentTarget.id.split('-')[2]); const val = e.currentTarget.value; if(val.trim()) addComment(postId, val); e.currentTarget.value = ""; } };
+
+    function setSection(sectionId) {
+      currentSection = sectionId;
+      navLinks.forEach(link => { const isActive = link.getAttribute('data-section') === currentSection; link.style.color = isActive ? "#CC5A30" : "#a0a0a0"; if(link.querySelector('i')) link.querySelector('i').style.color = isActive ? "#CC5A30" : "#a0a0a0"; });
+      renderCurrentSection();
+    }
+
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m)); }
+
+    darkToggleBtn.addEventListener('click', toggleDarkMode);
+    searchToggleBtn.addEventListener('click', toggleSearchBar);
+    globalSearchInput.addEventListener('input', handleSearchInput);
+    globalSearchInput.addEventListener('keydown', e => { if(e.key === 'Escape' && isSearchVisible) toggleSearchBar(); });
+    navLinks.forEach(link => link.addEventListener('click', e => { e.preventDefault(); setSection(link.getAttribute('data-section')); }));
+    setSection("home");
+    if(isDark) document.body.classList.remove('light'); else document.body.classList.add('light');
+  </script>
 </body>
 </html>
