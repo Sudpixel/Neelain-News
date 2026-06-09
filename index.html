@@ -24,7 +24,7 @@
     header { padding: 1rem 5%; backdrop-filter: blur(15px); background: rgba(0,0,0,0.6); border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; }
     .logo h1 { font-size: 24px; font-weight: 900; }
     .logo span { color: #CC5A30; }
-    .avatar { width: 45px; height: 45px; background: #CC5A30; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; color: white; }
+    .avatar { width: 45px; height: 45px; background: #CC5A30; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; color: white; font-size: 1.5rem; }
     .action-btn { background: none; border: none; color: #a0a0a0; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 8px 15px; border-radius: 2rem; font-weight: 600; transition: 0.2s; }
     .stories-container { display: flex; overflow-x: auto; padding: 1rem 5%; gap: 12px; scrollbar-width: thin; }
     .story-card { width: 80px; height: 110px; border-radius: 1.2rem; background: #2a2a2a; flex-shrink: 0; display: flex; align-items: flex-end; justify-content: center; padding: 8px; font-size: 12px; font-weight: bold; background-size: cover; background-position: center; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
@@ -55,7 +55,6 @@
     <div class="flex gap-2">
       <button id="searchToggleBtn" class="avatar"><i class="bi bi-search"></i></button>
       <button id="darkModeToggle" class="avatar"><i class="bi bi-moon-stars-fill"></i></button>
-      <a href="admin.html" id="adminLink" class="avatar"><i class="bi bi-shield-lock-fill"></i></a>
     </div>
   </header>
 
@@ -80,20 +79,80 @@
   <div id="toastMsg" class="toast-msg"></div>
 
   <script>
-    // ------------------------- تهيئة localStorage بالبيانات الافتراضية -------------------------
+    // ------------------------- تحسين escapeHtml لعلامات الاقتباس -------------------------
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+        return c; // الحفاظ على الإيموجي
+      }).replace(/['"]/g, function(m) {
+        return m === '"' ? '&quot;' : '&#39;';
+      });
+    }
+
+    // ------------------------- تحويل الإيموجي القديم إلى أيقونات (للترقية) -------------------------
+    function emojiToIconClass(emoji) {
+      const map = {
+        '🏛️': 'bi-buildings-fill',
+        '👩‍🎓': 'bi-mortarboard-fill',
+        '💻': 'bi-laptop-fill',
+        '📚': 'bi-book-fill',
+        '👨‍🏫': 'bi-person-badge-fill',
+        '📢': 'bi-megaphone-fill',
+        '👤': 'bi-person-fill',
+        '👨‍💻': 'bi-code-slash',
+        '👥': 'bi-people-fill'
+      };
+      return map[emoji] || 'bi-megaphone-fill';
+    }
+
+    // ------------------------- تهيئة localStorage بالبيانات الجديدة (أيقونات) -------------------------
     const STORAGE_KEYS = {
       POSTS: 'neelain_posts',
       ALERTS: 'neelain_alerts',
       PEOPLE: 'neelain_people',
       COMMENTS: 'neelain_comments'
     };
+
+    function upgradeOldData() {
+      let posts = JSON.parse(localStorage.getItem(STORAGE_KEYS.POSTS) || '[]');
+      let people = JSON.parse(localStorage.getItem(STORAGE_KEYS.PEOPLE) || '[]');
+      let changed = false;
+      posts.forEach(p => {
+        if (p.avatarIcon && (p.avatarIcon.startsWith('bi ') === false && !p.avatarIcon.startsWith('<i'))) {
+          p.avatarIcon = emojiToIconClass(p.avatarIcon);
+          changed = true;
+        } else if (!p.avatarIcon) {
+          p.avatarIcon = 'bi-megaphone-fill';
+          changed = true;
+        }
+      });
+      people.forEach(p => {
+        if (p.avatar && (p.avatar.startsWith('bi ') === false && !p.avatar.startsWith('<i'))) {
+          p.avatar = emojiToIconClass(p.avatar);
+          changed = true;
+        } else if (!p.avatar) {
+          p.avatar = 'bi-person-fill';
+          changed = true;
+        }
+      });
+      if (changed) {
+        localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(posts));
+        localStorage.setItem(STORAGE_KEYS.PEOPLE, JSON.stringify(people));
+      }
+    }
+
     function initData() {
       if (!localStorage.getItem(STORAGE_KEYS.POSTS)) {
         const defaultPosts = [
-          { id: 1, author: "جامعة النيلين", avatarIcon: "🏛️", content: "📢 تمديد فترة التسجيل للفصل الدراسي الثاني حتى 20 فبراير. سارعوا بالتسجيل عبر البوابة الإلكترونية.", likes: 45, liked: false },
-          { id: 2, author: "عمادة شؤون الطلاب", avatarIcon: "👩‍🎓", content: "🥇 برنامج المنح الدراسية للطلاب المتميزين متاح الآن. التقديم حتى 10 مارس.", likes: 128, liked: false },
-          { id: 3, author: "نادي التكنولوجيا", avatarIcon: "💻", content: "ورشة عمل: أساسيات الذكاء الاصطناعي يوم الأربعاء القادم، سجل حضورك الآن!", likes: 89, liked: false },
-          { id: 4, author: "مكتبة الجامعة", avatarIcon: "📚", content: "موارد رقمية جديدة: منصة معرفة للوصول إلى آلاف المراجع العلمية مجاناً.", likes: 210, liked: false }
+          { id: 1, author: "جامعة النيلين", avatarIcon: "bi-buildings-fill", content: "📢 تمديد فترة التسجيل للفصل الدراسي الثاني حتى 20 فبراير. سارعوا بالتسجيل عبر البوابة الإلكترونية.", likes: 45, liked: false },
+          { id: 2, author: "عمادة شؤون الطلاب", avatarIcon: "bi-mortarboard-fill", content: "🥇 برنامج المنح الدراسية للطلاب المتميزين متاح الآن. التقديم حتى 10 مارس.", likes: 128, liked: false },
+          { id: 3, author: "نادي التكنولوجيا", avatarIcon: "bi-laptop-fill", content: "ورشة عمل: أساسيات الذكاء الاصطناعي يوم الأربعاء القادم، سجل حضورك الآن!", likes: 89, liked: false },
+          { id: 4, author: "مكتبة الجامعة", avatarIcon: "bi-book-fill", content: "موارد رقمية جديدة: منصة معرفة للوصول إلى آلاف المراجع العلمية مجاناً.", likes: 210, liked: false }
         ];
         localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(defaultPosts));
       }
@@ -108,10 +167,10 @@
       }
       if (!localStorage.getItem(STORAGE_KEYS.PEOPLE)) {
         const defaultPeople = [
-          { id: 1, name: "د. محمد الأمين", role: "عميد كلية الحاسوب", avatar: "👨‍🏫", isFollowed: false },
-          { id: 2, name: "أ. سارة عبد الرحمن", role: "رئيسة اتحاد الطلاب", avatar: "👩‍🎓", isFollowed: true },
-          { id: 3, name: "نادي البرمجة", role: "نشاط طلابي", avatar: "💻", isFollowed: false },
-          { id: 4, name: "مكتب الإعلام", role: "الحساب الرسمي", avatar: "📢", isFollowed: true }
+          { id: 1, name: "د. محمد الأمين", role: "عميد كلية الحاسوب", avatar: "bi-person-badge-fill", isFollowed: false },
+          { id: 2, name: "أ. سارة عبد الرحمن", role: "رئيسة اتحاد الطلاب", avatar: "bi-mortarboard-fill", isFollowed: true },
+          { id: 3, name: "نادي البرمجة", role: "نشاط طلابي", avatar: "bi-laptop-fill", isFollowed: false },
+          { id: 4, name: "مكتب الإعلام", role: "الحساب الرسمي", avatar: "bi-megaphone-fill", isFollowed: true }
         ];
         localStorage.setItem(STORAGE_KEYS.PEOPLE, JSON.stringify(defaultPeople));
       }
@@ -131,6 +190,7 @@
         };
         localStorage.setItem(STORAGE_KEYS.COMMENTS, JSON.stringify(defaultComments));
       }
+      upgradeOldData(); // ترقية أي بيانات قديمة
     }
     initData();
 
@@ -150,6 +210,7 @@
     let searchQuery = "";
     let isDark = true;
     let isSearchVisible = false;
+    let searchDebounceTimer = null;
 
     const dynamicContainer = document.getElementById("dynamicContent");
     const darkToggleBtn = document.getElementById("darkModeToggle");
@@ -179,8 +240,11 @@
     }
 
     function handleSearchInput(e) {
-      searchQuery = e.target.value.trim().toLowerCase();
-      renderCurrentSection();
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        searchQuery = e.target.value.trim().toLowerCase();
+        renderCurrentSection();
+      }, 300);
     }
 
     function likePost(postId) {
@@ -214,7 +278,8 @@
     }
 
     function sharePost(postId) {
-      navigator.clipboard.writeText(`https://neelainnews.com/post/${postId}`).then(() => showToast("✅ تم نسخ رابط المنشور")).catch(() => showToast("⚠️ تعذر النسخ"));
+      const shareUrl = `${window.location.href.split('?')[0]}?post=${postId}`;
+      navigator.clipboard.writeText(shareUrl).then(() => showToast("✅ تم نسخ رابط المنشور")).catch(() => showToast("⚠️ تعذر النسخ"));
     }
 
     function filterItems(arr, fields) {
@@ -230,10 +295,13 @@
 
     function renderHome() {
       let filtered = filterItems(posts, ['author', 'content']);
-      if (!filtered.length) return `<div class="text-center py-12 bg-white/5 rounded-2xl"><i class="bi bi-search text-4xl opacity-50"></i><p class="mt-2">لا توجد نتائج بحث عن "${searchQuery}"</p></div>`;
+      if (!filtered.length) return `<div class="text-center py-12 bg-white/5 rounded-2xl"><i class="bi bi-search text-4xl opacity-50"></i><p class="mt-2">لا توجد نتائج بحث عن "${escapeHtml(searchQuery)}"</p></div>`;
       return filtered.map(post => `
-        <div class="post-card">
-          <div class="flex items-center gap-3 mb-4"><div class="avatar bg-[#CC5A30] text-white flex items-center justify-center text-xl">${post.avatarIcon || '👤'}</div><strong>${escapeHtml(post.author)}</strong></div>
+        <div class="post-card" data-post-id="${post.id}">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="avatar bg-[#CC5A30] text-white flex items-center justify-center"><i class="${escapeHtml(post.avatarIcon)}"></i></div>
+            <strong>${escapeHtml(post.author)}</strong>
+          </div>
           <div class="text-gray-300 leading-relaxed">${escapeHtml(post.content)}</div>
           <div class="flex justify-between items-center mt-4 pt-3 border-t border-white/10">
             <div class="flex gap-1">
@@ -259,45 +327,94 @@
     function renderPeople() {
       let filtered = filterItems(people, ['name', 'role']);
       if (!filtered.length) return `<div class="text-center py-12 bg-white/5 rounded-2xl"><i class="bi bi-person-x text-4xl opacity-50"></i><p class="mt-2">لا يوجد أشخاص مطابقين</p></div>`;
-      return filtered.map(person => `<div class="post-card flex items-center justify-between"><div class="flex items-center gap-4"><div class="avatar w-12 h-12 text-2xl">${person.avatar}</div><div><p class="font-bold">${escapeHtml(person.name)}</p><p class="text-xs text-gray-400">${escapeHtml(person.role)}</p></div></div><button class="follow-btn ${person.isFollowed ? 'following' : ''}" data-personid="${person.id}">${person.isFollowed ? 'متابَع' : 'متابعة'}</button></div>`).join('');
+      return filtered.map(person => `<div class="post-card flex items-center justify-between"><div class="flex items-center gap-4"><div class="avatar w-12 h-12 text-2xl"><i class="${escapeHtml(person.avatar)}"></i></div><div><p class="font-bold">${escapeHtml(person.name)}</p><p class="text-xs text-gray-400">${escapeHtml(person.role)}</p></div></div><button class="follow-btn ${person.isFollowed ? 'following' : ''}" data-personid="${person.id}">${person.isFollowed ? 'متابَع' : 'متابعة'}</button></div>`).join('');
+    }
+
+    // Event delegation لجميع الأحداث داخل الحاوية الرئيسية
+    function attachGlobalEvents() {
+      dynamicContainer.addEventListener('click', (e) => {
+        const likeBtn = e.target.closest('.like-btn');
+        if (likeBtn) {
+          e.preventDefault();
+          const id = parseInt(likeBtn.getAttribute('data-id'));
+          if (!isNaN(id)) likePost(id);
+          return;
+        }
+        const followBtn = e.target.closest('.follow-btn');
+        if (followBtn) {
+          e.preventDefault();
+          const id = parseInt(followBtn.getAttribute('data-personid'));
+          if (!isNaN(id)) toggleFollow(id);
+          return;
+        }
+        const toggleCommentsBtn = e.target.closest('.toggle-comments-btn');
+        if (toggleCommentsBtn) {
+          e.preventDefault();
+          const id = parseInt(toggleCommentsBtn.getAttribute('data-id'));
+          const commentsDiv = document.getElementById(`comments-${id}`);
+          if (commentsDiv) commentsDiv.classList.toggle("open");
+          return;
+        }
+        const shareBtn = e.target.closest('.share-btn');
+        if (shareBtn) {
+          e.preventDefault();
+          const id = parseInt(shareBtn.getAttribute('data-id'));
+          if (!isNaN(id)) sharePost(id);
+          return;
+        }
+        const sendBtn = e.target.closest('.send-comment');
+        if (sendBtn) {
+          e.preventDefault();
+          const postId = parseInt(sendBtn.getAttribute('data-id'));
+          const input = document.getElementById(`comment-input-${postId}`);
+          if (input && input.value.trim()) {
+            addComment(postId, input.value);
+            input.value = "";
+          } else if (input) showToast("⚠️ اكتب تعليقاً أولاً");
+          return;
+        }
+      });
+
+      dynamicContainer.addEventListener('keypress', (e) => {
+        const input = e.target.closest('.comment-input');
+        if (input && e.key === 'Enter') {
+          e.preventDefault();
+          const postId = parseInt(input.id.split('-')[2]);
+          if (input.value.trim()) {
+            addComment(postId, input.value);
+            input.value = "";
+          }
+        }
+      });
     }
 
     function renderCurrentSection() {
-      let content = currentSection === "home" ? renderHome() : (currentSection === "alerts" ? renderAlerts() : renderPeople());
+      let content = "";
+      if (currentSection === "home") content = renderHome();
+      else if (currentSection === "alerts") content = renderAlerts();
+      else if (currentSection === "people") content = renderPeople();
       dynamicContainer.innerHTML = content;
-      attachDynamicEvents();
     }
-
-    function attachDynamicEvents() {
-      document.querySelectorAll('.like-btn').forEach(btn => { btn.removeEventListener('click', likeHandler); btn.addEventListener('click', likeHandler); });
-      document.querySelectorAll('.follow-btn').forEach(btn => { btn.removeEventListener('click', followHandler); btn.addEventListener('click', followHandler); });
-      document.querySelectorAll('.toggle-comments-btn').forEach(btn => { btn.removeEventListener('click', toggleCommentsHandler); btn.addEventListener('click', toggleCommentsHandler); });
-      document.querySelectorAll('.share-btn').forEach(btn => { btn.removeEventListener('click', shareHandler); btn.addEventListener('click', shareHandler); });
-      document.querySelectorAll('.send-comment').forEach(btn => { btn.removeEventListener('click', sendCommentHandler); btn.addEventListener('click', sendCommentHandler); });
-      document.querySelectorAll('.comment-input').forEach(input => { input.removeEventListener('keypress', commentEnterHandler); input.addEventListener('keypress', commentEnterHandler); });
-    }
-    const likeHandler = e => likePost(parseInt(e.currentTarget.getAttribute('data-id')));
-    const followHandler = e => toggleFollow(parseInt(e.currentTarget.getAttribute('data-personid')));
-    const toggleCommentsHandler = e => document.getElementById(`comments-${parseInt(e.currentTarget.getAttribute('data-id'))}`)?.classList.toggle("open");
-    const shareHandler = e => sharePost(parseInt(e.currentTarget.getAttribute('data-id')));
-    const sendCommentHandler = e => { const postId = parseInt(e.currentTarget.getAttribute('data-id')); const input = document.getElementById(`comment-input-${postId}`); if(input?.value.trim()) addComment(postId, input.value); else showToast("⚠️ اكتب تعليقاً أولاً"); input.value = ""; };
-    const commentEnterHandler = e => { if(e.key === 'Enter') { const postId = parseInt(e.currentTarget.id.split('-')[2]); const val = e.currentTarget.value; if(val.trim()) addComment(postId, val); e.currentTarget.value = ""; } };
 
     function setSection(sectionId) {
       currentSection = sectionId;
-      navLinks.forEach(link => { const isActive = link.getAttribute('data-section') === currentSection; link.style.color = isActive ? "#CC5A30" : "#a0a0a0"; if(link.querySelector('i')) link.querySelector('i').style.color = isActive ? "#CC5A30" : "#a0a0a0"; });
+      navLinks.forEach(link => {
+        const isActive = link.getAttribute('data-section') === currentSection;
+        link.style.color = isActive ? "#CC5A30" : "#a0a0a0";
+        if (link.querySelector('i')) link.querySelector('i').style.color = isActive ? "#CC5A30" : "#a0a0a0";
+      });
       renderCurrentSection();
     }
 
-    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m)); }
-
+    // تسجيل الأحداث العامة
     darkToggleBtn.addEventListener('click', toggleDarkMode);
     searchToggleBtn.addEventListener('click', toggleSearchBar);
     globalSearchInput.addEventListener('input', handleSearchInput);
-    globalSearchInput.addEventListener('keydown', e => { if(e.key === 'Escape' && isSearchVisible) toggleSearchBar(); });
+    globalSearchInput.addEventListener('keydown', e => { if (e.key === 'Escape' && isSearchVisible) toggleSearchBar(); });
     navLinks.forEach(link => link.addEventListener('click', e => { e.preventDefault(); setSection(link.getAttribute('data-section')); }));
+    attachGlobalEvents();
     setSection("home");
-    if(isDark) document.body.classList.remove('light'); else document.body.classList.add('light');
+    if (isDark) document.body.classList.remove('light'); else document.body.classList.add('light');
   </script>
 </body>
 </html>
